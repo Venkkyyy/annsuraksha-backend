@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AnnSuraksha Admin Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f7fa;
+    }
+    header {
+      background-color: #2e5c9a;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+    .container {
+      padding: 2rem;
+    }
+    .section {
+      background: white;
+      padding: 1.2rem;
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    h2 {
+      color: #2e5c9a;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e9eef5;
+    }
+    .msg {
+      color: red;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin Dashboard - AnnSuraksha</h1>
+  </header>
+  <div class="container">
+    <div class="section" id="trust-overview">
+      <h2>Trust Score Overview</h2>
+      <p id="trustData">Loading...</p>
+    </div>
+
+    <div class="section">
+      <h2>Recent Deliveries</h2>
+      <table id="deliveryTable">
+        <thead>
+          <tr>
+            <th>Aadhar</th>
+            <th>Location</th>
+            <th>Items</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Active Complaints</h2>
+      <table id="complaintTable">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Issue</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Alerts</h2>
+      <table id="alertTable">
+        <thead>
+          <tr>
+            <th>Aadhar</th>
+            <th>Severity</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Timeline</h2>
+      <table id="timelineTable">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Aadhar</th>
+            <th>Time</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    async function loadAdminData() {
+      try {
+        // Trust overview
+        const trustRes = await fetch("http://localhost:8000/trust_scores/overview");
+        const trust = await trustRes.json();
+        document.getElementById("trustData").innerText =
+          `Average: ${trust.average}, Min: ${trust.min}, Max: ${trust.max}, Users: ${trust.count}`;
+
+        // Deliveries
+        const deliveryRes = await fetch("http://localhost:8000/dashboard/recent_deliveries");
+        const deliveries = await deliveryRes.json();
+        const dTable = document.querySelector("#deliveryTable tbody");
+        dTable.innerHTML = "";
+        deliveries.forEach(d => {
+          dTable.innerHTML += `
+            <tr>
+              <td>${d.aadhar_number}</td>
+              <td>${d.location}</td>
+              <td>${Array.isArray(d.items) ? d.items.join(", ") : "N/A"}</td>
+              <td>${new Date(d.created_at).toLocaleString()}</td>
+            </tr>`;
+        });
+
+        // Complaints
+        const complaintRes = await fetch("http://localhost:8000/dashboard/active_complaints");
+        const complaints = await complaintRes.json();
+        const cTable = document.querySelector("#complaintTable tbody");
+        cTable.innerHTML = "";
+        complaints.forEach(c => {
+          cTable.innerHTML += `
+            <tr>
+              <td>${c.user_name}</td>
+              <td>${c.issue}</td>
+              <td>${c.status}</td>
+            </tr>`;
+        });
+
+        // Alerts
+        const alertRes = await fetch("http://localhost:8000/alerts/recent");
+        const alerts = await alertRes.json();
+        const aTable = document.querySelector("#alertTable tbody");
+        aTable.innerHTML = "";
+        alerts.forEach(a => {
+          aTable.innerHTML += `
+            <tr>
+              <td>${a.aadhar_number || "N/A"}</td>
+              <td>${a.severity || "Unknown"}</td>
+              <td>${new Date(a.timestamp).toLocaleString()}</td>
+            </tr>`;
+        });
+
+        // Timeline
+        const timelineRes = await fetch("http://localhost:8000/timeline");
+        const timeline = await timelineRes.json();
+        const tTable = document.querySelector("#timelineTable tbody");
+        tTable.innerHTML = "";
+        timeline.forEach(t => {
+          tTable.innerHTML += `
+            <tr>
+              <td>${t.type}</td>
+              <td>${t.aadhar_number}</td>
+              <td>${new Date(t.timestamp).toLocaleString()}</td>
+              <td>${t.details}</td>
+            </tr>`;
+        });
+
+      } catch (err) {
+        console.error("Failed to fetch admin data:", err);
+        document.querySelectorAll(".section").forEach(sec => {
+          sec.innerHTML += `<p class="msg">Failed to load data.</p>`;
+        });
+      }
+    }
+
+    loadAdminData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AnnSuraksha - File Complaint</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .form-container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
+      width: 400px;
+    }
+    h2 {
+      color: #2e5c9a;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #2e5c9a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4170;
+    }
+    .msg {
+      text-align: center;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>File Complaint</h2>
+    <form id="complaintForm">
+      <label for="aadhar">Aadhar Number</label>
+      <input type="text" id="aadhar" name="aadhar" required />
+
+      <label for="text">Complaint Text</label>
+      <textarea id="text" name="text" required></textarea>
+
+      <button type="submit">Submit</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById("complaintForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const aadhar = document.getElementById("aadhar").value;
+      const text = document.getElementById("text").value;
+
+      try {
+        const response = await fetch("http://localhost:8000/complaint", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ aadhar_number: aadhar, text: text })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          msg.style.color = "green";
+          msg.innerText = `Complaint submitted. Severity: ${result.ai_result.severity}`;
+          form.reset();
+        } else {
+          msg.style.color = "red";
+          msg.innerText = result.detail || "Complaint failed.";
+        }
+      } catch (err) {
+        msg.style.color = "red";
+        msg.innerText = "Could not connect to server.";
+      }
+    });
+  </script>
+</body>
+</html>

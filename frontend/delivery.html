@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Log Delivery - AnnSuraksha</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #eef3f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .form-container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      width: 500px;
+    }
+    h2 {
+      text-align: center;
+      color: #2e5c9a;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 1.5rem;
+      background-color: #2e5c9a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4072;
+    }
+    .msg {
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Log Delivery</h2>
+    <form id="deliveryForm">
+      <label for="aadhar">Aadhar Number</label>
+      <input type="text" id="aadhar" required />
+
+      <label for="location">Location</label>
+      <input type="text" id="location" required />
+
+      <label for="items">Items (comma-separated)</label>
+      <input type="text" id="items" required />
+
+      <label for="delayed">Delivery Delayed?</label>
+      <select id="delayed">
+        <option value="false">No</option>
+        <option value="true">Yes</option>
+      </select>
+
+      <button type="submit">Submit Delivery</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("msg");
+      msg.style.color = "red";
+
+      const aadhar = document.getElementById("aadhar").value;
+      const location = document.getElementById("location").value;
+      const items = document.getElementById("items").value.split(",").map(i => i.trim());
+      const delayed = document.getElementById("delayed").value === "true";
+
+      try {
+        const response = await fetch("http://localhost:8000/delivery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            aadhar_number: aadhar,
+            location: location,
+            items: items,
+            delayed: delayed
+          }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          msg.style.color = "green";
+          msg.innerText = "Delivery logged successfully!";
+        } else {
+          msg.innerText = result.detail || "Error logging delivery.";
+        }
+      } catch (err) {
+        msg.innerText = "Failed to connect to server.";
+      }
+    });
+  </script>
+</body>
+</html>

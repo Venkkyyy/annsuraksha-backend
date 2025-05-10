@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - AnnSuraksha</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f2f4f8;
+    }
+    form {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    input, select {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.5rem;
+    }
+    button {
+      width: 100%;
+      margin-top: 1rem;
+      background-color: #2e5c9a;
+      color: white;
+      padding: 0.7rem;
+      border: none;
+      cursor: pointer;
+    }
+    .msg {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <form id="regForm">
+    <h2>Register</h2>
+    <input type="text" placeholder="Name" name="name" required>
+    <input type="email" placeholder="Email" name="email" required>
+    <input type="password" placeholder="Password" name="password" required>
+    <select name="role" required>
+      <option value="">Select Role</option>
+      <option value="admin">Admin</option>
+      <option value="beneficiary">Beneficiary</option>
+      <option value="dealer">Dealer</option>
+    </select>
+    <button type="submit">Register</button>
+    <div class="msg" id="reg-msg"></div>
+  </form>
+  <script>
+    document.getElementById('regForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const msg = document.getElementById('reg-msg');
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        msg.style.color = res.ok ? 'green' : 'red';
+        msg.textContent = data.message || data.detail;
+        if (res.ok) setTimeout(() => window.location.href = '/login-page', 1500);
+      } catch (err) {
+        msg.textContent = 'Error connecting to server';
+      }
+    });
+  </script>
+</body>
+</html>
